@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#090a0d">
+<title>艾瑟兰 REV20.7</title>
+<style>
+html,body{margin:0;min-height:100%;background:#090a0d;color:#eee8dc;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+.wrap{min-height:100vh;display:grid;place-items:center;padding:24px;box-sizing:border-box}
+.card{width:min(560px,100%);padding:26px;border:1px solid #57472b;border-radius:18px;background:#12151b;box-shadow:0 20px 80px #0008}
+h1{margin:0 0 8px;color:#d6b56f;font-size:24px}.sub{color:#9da5b2;font-size:13px;line-height:1.7}
+.bar{height:8px;background:#080a0e;border-radius:999px;overflow:hidden;margin:20px 0 10px}.bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#8c6b33,#d6b56f);transition:width .15s}
+#status{font-size:13px}.small{font-size:11px;color:#7f8792;margin-top:12px}
+.err{color:#e29a9a;white-space:pre-wrap;line-height:1.6}
+</style>
+</head>
+<body>
+<div class="wrap"><div class="card">
+<h1>艾瑟兰 · REV20.7</h1>
+<div class="sub">正在装载完整世界与交互式游戏引擎。首次进入需要下载约 6.3 MB，之后浏览器会使用缓存。</div>
+<div class="bar"><i id="p"></i></div>
+<div id="status">准备加载……</div>
+<div class="small">1270 HUB · 5080 前传 · 7724 THREAD · 3064 SAGA · 18384 EPISODE</div>
+</div></div>
+<script>
+(async()=>{
+ const total=28, parts=[], p=document.getElementById('p'), s=document.getElementById('status');
+ for(let i=0;i<total;i++){
+   const n=String(i).padStart(2,'0');
+   s.textContent='正在加载世界数据 '+(i+1)+' / '+total;
+   const r=await fetch('./game/chunk-'+n+'.txt?v=rev20.7-v3',{cache:'force-cache'});
+   if(!r.ok) throw new Error('分片 '+n+' 加载失败：HTTP '+r.status);
+   parts.push(await r.text());
+   p.style.width=((i+1)/total*100).toFixed(1)+'%';
+ }
+ s.textContent='正在启动世界……';
+ const html=parts.join('');
+ if(!html.toLowerCase().startsWith('<!doctype html>')) throw new Error('游戏包校验失败：起始标记异常');
+ if(!html.includes('艾瑟兰 · REV20.7')) throw new Error('游戏包校验失败：版本标记缺失');
+ document.open();
+ document.write(html);
+ document.close();
+})().catch(e=>{
+ document.getElementById('status').className='err';
+ document.getElementById('status').textContent='启动失败：'+e.message+'\n请刷新页面重试。';
+ console.error(e);
+});
+</script>
+</body></html>
